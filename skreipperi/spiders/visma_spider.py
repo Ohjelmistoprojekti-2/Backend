@@ -10,8 +10,9 @@ class JobsSpider(scrapy.Spider):
         
         for job in response.xpath('//channel/item'):
             yield {
-                'title' : job.xpath('title//text()').extract(),
-                'link': job.xpath('link//text()').extract(),
+                'header' : job.xpath('title//text()').extract(),
                 'company': job.xpath('dc.creator//text()').extract(),  ##palauttaa vielä tyhjän listan
+                'url': job.xpath('link//text()').extract(),
+                
             }
       
