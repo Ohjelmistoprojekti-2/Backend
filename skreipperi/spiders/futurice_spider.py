@@ -6,6 +6,13 @@ from json import JSONEncoder
 
 jobPosts = []
 
+class Post:
+        def __init__(self, header, ala, company, url):
+            self.header = header
+            self.ala = ala
+            self.company = company
+            self.url = url
+
 class JobsSpider(scrapy.Spider):
     name = "jobs"
 
@@ -22,13 +29,6 @@ class JobsSpider(scrapy.Spider):
 
     def parse(self, response):
 
-        class Post:
-            def __init__(self, header, ala, company, url):
-                self.header = header
-                self.ala = ala
-                self.company = company
-                self.url = url
-
         for job in response.css('.css-ffhm6p'):
             if(job.css('.css-zsp0rz::text').get() == "Tech"):
 
@@ -41,8 +41,33 @@ class JobsSpider(scrapy.Spider):
                 print(p1.header)
                 jobPosts.append(p1)
 
+class JobsReaktor(scrapy.Spider):
+    name = "reaktor"
+
+    def start_requests(self):
+
+        urls = [
+            'https://www.reaktor.com/careers/#careers',
+        ]
+        for url in urls:
+            yield scrapy.Request(url, self.parse)
+
+    def parse(self, response):
+        
+        for job in response.css('a.filter-career-post'):
+            if job.css('div h2::text').get() != None:
+                    header = job.css('div h2::text').get()
+                    ala = 'Tech'
+                    company = 'Reaktor'
+                    url = job.css('::attr(href)').get()
+
+                    p1 = Post(header, ala, company, url)
+                    print(p1.header)
+                    jobPosts.append(p1)
+
 process = CrawlerProcess()
 process.crawl(JobsSpider)
+process.crawl(JobsReaktor)
 process.start()
 
 
