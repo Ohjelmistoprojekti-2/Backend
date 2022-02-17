@@ -1,33 +1,58 @@
 import scrapy
+from scrapy.crawler import CrawlerProcess
+import json
+from json import JSONEncoder
 
+jobPosts = []
 
-class JobsSpider(scrapy.Spider):
+class Post:
+        def __init__(self, header, ala, company, url):
+            self.header = header
+            self.company = company
+            self.url = url
+
+class TietoevrySpider(scrapy.Spider):
     name = "tietoevry"
 
     def start_requests(self):
-        # array haettavista osoitteista
         urls = [
-            'https://tietoevry.com/en/careers/search-our-jobs/',
+            (f'https://www.tietoevry.com/en/careers/search-our-jobs/?country=&city=&area=Application%20and%20Product%20Development&role=&organization=&q='),
         ]
         for url in urls:
-            # haetaan "tagi" -a -flagin kanssa annetusta tags-attribuutista
             #tag = getattr(self, 'tag', None)
 
-            # jos tagi on olemassa, lisätään se urliin
             #if tag is not None:
                 #url = url + '?haku=' + tag
-            # parsetaan urlin sisältö
+    
             yield scrapy.Request(url, self.parse)
 
     def parse(self, response):
-        # kun urleja tulee myöhemmin lisää, tähän tarvii ehdon että onko kyseessä Duunitori
-        # loopataan jokainen työpaikkadiv
+
         for job in response.css('a.jobResultRow'):
-            # jos työpaikkadivillä on jokin järkevä otsikko, huomioidaan työpaikka
             if job.css('a.jobResultRow::text').get() != None:
-                # assignataan divin sisältöelementtejä nimettyihin kenttiin
-                yield {
-                    'header': job.css('div:nth-child(1)::text').get(),
-                    'company': 'Tietoevry',
-                    'url':job.css('::attr(href)').get()
-                }
+                
+                header = job.css('div:nth-child(1)::text').get(),
+                company = 'Tietoevry',
+                url = job.css('::attr(href)').get()
+                
+                p1 = Post(header, company, url)
+                jobPosts.append(p1)
+
+process = CrawlerProcess(settings = {
+    'FEED_URI': 'tietoevry.json',
+    'FEED_FORMAT': 'json'
+})
+
+process.crawl(TietoevrySpider)
+process.start()
+
+class JobEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
+def printList():
+
+    jsonData = json.dumps(jobPosts, indent= 4, cls=JobEncoder)
+    print(jsonData)
+
+printList()
