@@ -1,25 +1,29 @@
+
+from urllib import request
 import scrapy
 from scrapy.crawler import CrawlerProcess
 import json
 from json import JSONEncoder
 
 jobPosts = []
+
+#luodaan luokka
+class Post(scrapy.Item):                       
+          ##def __init__(self, header, ala, company, text, url):
+                header = scrapy.Field()
+                ala = scrapy.Field()
+                company = scrapy.Field()
+                text = scrapy.Field()
+                url = scrapy.Field()
 class VismaSpider(scrapy.Spider):
     name = "visma_jobs"
     start_urls = ['https://ats.talentadore.com/positions/rJ4tqSR/rss?v=2&language=en%2Cfi&tags=&notTags=Visma+Legal+avoin+hakemus&businessUnits=&notBusinessUnits=&display_description=job_description&categories=tags_and_extras']
     
     
+    
 
     def parse(self, response):
         
-        class Post:
-            def __init__(self, header, ala, company, url):
-                self.header = header
-                self.ala = ala
-                self.company = company
-                self.url = url
-        
-
 
         for job in response.xpath('//channel/item'):
             
@@ -27,9 +31,34 @@ class VismaSpider(scrapy.Spider):
               ala = 'Tech'
               company = job.xpath('dc.creator//text()').extract_first()
               url =  job.xpath('link//text()').extract_first()
+               
+              request = scrapy.Request(url, callback=self.parse_following_page)
+              request.cb_kwargs['header'] = header   ##lähetetään parse_following_page  jo haetut tiedot
+              request.cb_kwargs['ala'] = ala
+              request.cb_kwargs['company'] = company
+              request.cb_kwargs['url'] = url
+              yield request             ## vaatii jotta saadaan kutsuttua parse_following_page
 
-              new = Post(header, ala, company, url)   
-              jobPosts.append(new)
+    def parse_following_page(self, response, header, ala, company, url):
+        
+        header = header
+        ala = ala
+        company = company
+        url = url
+        text = response.css('div.job-ad-feature-description  p').getall()   ##palauttaa listan
+        
+        
+        
+
+        #if 'Java' in text:                      #Jos tekstistä löytyy 'Java' niin printaa sen työn tiedot
+        new = Post(header=header, ala=ala, company=company, text=text, url=url)  
+        jobPosts.append(new)
+
+        ##else:
+         ##   pass 
+         
+        
+
               
               
 process = CrawlerProcess()
