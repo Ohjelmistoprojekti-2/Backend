@@ -33,11 +33,11 @@ class VismaSpider(scrapy.Spider):
               url =  job.xpath('link//text()').extract_first()
                
               request = scrapy.Request(url, callback=self.parse_following_page)
-              request.cb_kwargs['header'] = header   ##lähetetään parse_following_page  jo haetut tiedot
+              request.cb_kwargs['header'] = header   #lähetetään parse_following_page  jo haetut tiedot
               request.cb_kwargs['ala'] = ala
               request.cb_kwargs['company'] = company
               request.cb_kwargs['url'] = url
-              yield request             ## vaatii jotta saadaan kutsuttua parse_following_page
+              yield request             # vaatii jotta saadaan kutsuttua parse_following_page
 
     def parse_following_page(self, response, header, ala, company, url):
         
@@ -45,17 +45,20 @@ class VismaSpider(scrapy.Spider):
         ala = ala
         company = company
         url = url
-        text = response.css('div.job-ad-feature-description  p').getall()   ##palauttaa listan
-        
+        textlist = response.css('div.job-ad-feature-description  p').getall()   #palauttaa listan
+        text_untrimmed=' '.join([str(text)for text in textlist])
+        text_untrimmed=text_untrimmed.replace('<p>','')
+        text = text_untrimmed.replace('</p>','')  #palautettu lista trimataan
+                                                    #tähän voisi keksiä jonkun fiksumman keinon jos päätetään pitää tekstin näyttäminen
         
         
 
-        #if 'Java' in text:                      #Jos tekstistä löytyy 'Java' niin printaa sen työn tiedot
-        new = Post(header=header, ala=ala, company=company, text=text, url=url)  
-        jobPosts.append(new)
+        if 'Java' in text:                      #Jos tekstistä löytyy 'Java' niin printaa sen työn tiedot
+            new = Post(header=header, ala=ala, company=company, text=text, url=url)  
+            jobPosts.append(new)
 
-        ##else:
-         ##   pass 
+        else:
+           pass 
          
         
 
