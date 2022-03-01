@@ -6,12 +6,12 @@ from json import JSONEncoder
 
 jobPosts = []
 
-class Post:
-        def __init__(self, header, ala, company, url):
-            self.header = header
-            self.ala = ala
-            self.company = company
-            self.url = url
+class Post(scrapy.Item):                       
+    header = scrapy.Field()
+    ala = scrapy.Field()
+    company = scrapy.Field()
+    text = scrapy.Field()
+    url = scrapy.Field()
 
 class JobsSpider(scrapy.Spider):
     name = "jobs"
@@ -37,9 +37,23 @@ class JobsSpider(scrapy.Spider):
                 company = "Futurice"
                 url = "https://futurice.com/"+job.css('a::attr(href)').get()
 
-                p1 = Post(header, ala, company, url)
-                print(p1.header)
-                jobPosts.append(p1)
+                request = scrapy.Request(url, callback=self.parse_following_page_Futurice)
+                request.cb_kwargs['header'] = header   ##lähetetään parse_following_page  jo haetut tiedot
+                request.cb_kwargs['ala'] = ala
+                request.cb_kwargs['company'] = company
+                request.cb_kwargs['url'] = url
+                yield request      ## vaatii jotta saadaan kutsuttua parse_following_page
+    
+    def parse_following_page_Futurice(self, response, header, ala, company, url):
+        
+        header = header
+        ala = ala
+        company = company
+        url = url
+        text = response.css('div.css-b4zh0n  p').getall()   ##palauttaa listan
+
+        new = Post(header=header, ala=ala, company=company, text=text, url=url)  
+        jobPosts.append(new)  
 
 class JobsReaktor(scrapy.Spider):
     name = "reaktor"
@@ -61,12 +75,28 @@ class JobsReaktor(scrapy.Spider):
                     company = 'Reaktor'
                     url = job.css('::attr(href)').get()
 
-                    p1 = Post(header, ala, company, url)
-                    print(p1.header)
-                    jobPosts.append(p1)
+                    request = scrapy.Request(url, callback=self.parse_following_page_Reaktor)
+                    request.cb_kwargs['header'] = header   ##lähetetään parse_following_page  jo haetut tiedot
+                    request.cb_kwargs['ala'] = ala
+                    request.cb_kwargs['company'] = company
+                    request.cb_kwargs['url'] = url
+                    yield request      ## vaatii jotta saadaan kutsuttua parse_following_page
+    
+    def parse_following_page_Reaktor(self, response, header, ala, company, url):
+        
+        header = header
+        ala = ala
+        company = company
+        url = url
+        text = response.css('div.col.col6-ns.col12.offset1-l.blog-copy  span::text').getall()   ##palauttaa listan
+        text = text + response.css('div.col.col6-ns.col12.offset1-l.blog-copy  p::text').getall()
+
+        new = Post(header=header, ala=ala, company=company, text=text, url=url)  
+        jobPosts.append(new)
+
 
 process = CrawlerProcess()
-process.crawl(JobsSpider)
+#process.crawl(JobsSpider)
 process.crawl(JobsReaktor)
 process.start()
 
