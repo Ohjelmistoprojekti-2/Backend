@@ -29,7 +29,7 @@ class VismaSpider(scrapy.Spider):
             
               header = job.xpath('title//text()').extract_first()
               ala = 'Tech'
-              company = job.xpath('dc.creator//text()').extract_first()
+              company = 'Visma'
               url =  job.xpath('link//text()').extract_first()
                
               request = scrapy.Request(url, callback=self.parse_following_page)
@@ -53,12 +53,12 @@ class VismaSpider(scrapy.Spider):
         
         
 
-        if 'Java' in text:                      #Jos tekstistä löytyy 'Java' niin printaa sen työn tiedot
-            new = Post(header=header, ala=ala, company=company, text=text, url=url)  
-            jobPosts.append(new)
+        #if 'Java' in text:                      #Jos tekstistä löytyy 'Java' niin printaa sen työn tiedot
+        new = Post(header=header, ala=ala, company=company, text=text, url=url)  
+        jobPosts.append(new)
 
-        else:
-           pass 
+        #else:
+           #pass 
          
         
 
