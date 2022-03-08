@@ -1,10 +1,16 @@
 import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerProcess , CrawlerRunner
 import json
 from json import JSONEncoder
+from cachetools import cached, TTLCache
+import time
+from twisted.internet import reactor, defer
+from multiprocessing import Process
 
 
 jobPosts = []
+
+
 
 
 class Post(scrapy.Item):
@@ -177,9 +183,53 @@ class SiiliSpider(scrapy.Spider):
         jobPosts.append(new)
 
 
-process = CrawlerProcess()
-process.crawl(JobsSpider)
-process.crawl(JobsReaktor)
-process.crawl(VismaSpider)
-process.crawl(SiiliSpider)
-process.start()
+
+
+
+##############################
+
+def execute_crawling():
+    process = CrawlerProcess()#same way can be done for Crawlrunner
+    process.crawl(SiiliSpider)
+    process.crawl(JobsReaktor)
+    process.start()
+
+###########################
+
+
+#luodaan TimeToLive cache  maxsize pitää löytää sopiva koko ja aika on 1 58600päivä sekunteina
+
+@cached(cache= TTLCache(maxsize= 50000, ttl = 30))
+def job_info():
+    #saadaan jobPosts täyteen tavaraa
+    
+    p = Process(target=execute_crawling)
+    p.start()
+    p.join()
+    
+    #print('True')
+    return jobPosts
+
+
+
+
+start_time = time.time()
+print(job_info())
+eka_aika = time.time() - start_time
+start_time = time.time()
+print(job_info())
+toka_aika = time.time() - start_time
+time.sleep(31)
+start_time = time.time()
+print(job_info())
+kolmas_aika = time.time() - start_time
+
+
+print(jobPosts)
+
+
+
+
+print(eka_aika)
+print(toka_aika)
+print(kolmas_aika)
