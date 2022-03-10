@@ -12,6 +12,14 @@ jobPosts = []
 
 
 
+# class Post:
+#     def __init__(self,header,ala,company,url,text):
+#         self.header = header
+#         self.ala = ala
+#         self.company = company
+#         self.url = url
+#         self.text = text
+
 
 class Post(scrapy.Item):
     header = scrapy.Field()
@@ -179,9 +187,9 @@ class SiiliSpider(scrapy.Spider):
         text_trimmed = ' '.join([str(text)for text in textAll])
 
         new = Post(header=header, ala=ala, company=company,
-                   text=text_trimmed, url=url)
+                   text=text_trimmed, url=url)           
         jobPosts.append(new)
-
+        
 
 
 
@@ -191,45 +199,48 @@ class SiiliSpider(scrapy.Spider):
 def execute_crawling():
     process = CrawlerProcess()#same way can be done for Crawlrunner
     process.crawl(SiiliSpider)
-    process.crawl(JobsReaktor)
+    #process.crawl(JobsReaktor)
     process.start()
 
 ###########################
-
+execute_crawling()
+print(len(jobPosts))
 
 #luodaan TimeToLive cache  maxsize pitää löytää sopiva koko ja aika on 1 58600päivä sekunteina
 
-@cached(cache= TTLCache(maxsize= 50000, ttl = 30))
-def job_info():
-    #saadaan jobPosts täyteen tavaraa
+# @cached(cache= TTLCache(maxsize= 50000, ttl = 30))
+# def job_info():
+#     #saadaan jobPosts täyteen tavaraa
     
-    p = Process(target=execute_crawling)
-    p.start()
-    p.join()
+#     p = Process(target=execute_crawling)
+#     p.start()
+#     p.join()
     
-    #print('True')
-    return jobPosts
+#     #print('True')
+#     return jobPosts
 
 
 
 
-start_time = time.time()
-print(job_info())
-eka_aika = time.time() - start_time
-start_time = time.time()
-print(job_info())
-toka_aika = time.time() - start_time
-time.sleep(31)
-start_time = time.time()
-print(job_info())
-kolmas_aika = time.time() - start_time
+# start_time = time.time()
+# print(job_info())
+# time.sleep(30)
+# print(jobPosts)
+# eka_aika = time.time() - start_time
+# start_time = time.time()
+# print(job_info())
+# toka_aika = time.time() - start_time
+# time.sleep(31)
+# start_time = time.time()
+# print(job_info())
+# kolmas_aika = time.time() - start_time
 
 
-print(jobPosts)
+# print(jobPosts)
 
 
 
 
-print(eka_aika)
-print(toka_aika)
-print(kolmas_aika)
+# print(eka_aika)
+# print(toka_aika)
+# print(kolmas_aika)

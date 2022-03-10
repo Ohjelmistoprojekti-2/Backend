@@ -2,6 +2,8 @@ from allSpiders import jobPosts
 from flask import Flask, jsonify, Response
 from json import JSONEncoder
 import json
+from flask_cors import CORS
+
 
 
 class JobEncoder(JSONEncoder):
@@ -9,6 +11,7 @@ class JobEncoder(JSONEncoder):
             return o.__dict__
 
 app = Flask(__name__) #3000
+CORS(app)
 @app.route('/')
 def index():
     jsonData = json.dumps(jobPosts, indent= 4, cls=JobEncoder)
