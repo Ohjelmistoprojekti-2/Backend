@@ -12,6 +12,7 @@ class Post(scrapy.Item):
           ##def __init__(self, header, ala, company, text, url):
                 header = scrapy.Field()
                 ala = scrapy.Field()
+                location = scrapy.Field()
                 company = scrapy.Field()
                 text = scrapy.Field()
                 url = scrapy.Field()
@@ -25,24 +26,28 @@ class VismaSpider(scrapy.Spider):
     def parse(self, response):
         
 
+
         for job in response.xpath('//channel/item'):
             
               header = job.xpath('title//text()').extract_first()
-              ala = 'Tech'
+              ala = job.xpath('category[@domain="job_area"]//text()').extract_first()
+              location = job.xpath('category[@domain="city"]//text()').extract()
               company = 'Visma'
               url =  job.xpath('link//text()').extract_first()
                
               request = scrapy.Request(url, callback=self.parse_following_page)
               request.cb_kwargs['header'] = header   #lähetetään parse_following_page  jo haetut tiedot
+              request.cb_kwargs['location'] = location
               request.cb_kwargs['ala'] = ala
               request.cb_kwargs['company'] = company
               request.cb_kwargs['url'] = url
               yield request             # vaatii jotta saadaan kutsuttua parse_following_page
 
-    def parse_following_page(self, response, header, ala, company, url):
+    def parse_following_page(self, response, header, ala, location, company, url):
         
         header = header
         ala = ala
+        location = location
         company = company
         url = url
         textlist = response.css('div.job-ad-feature-description  p').getall()   #palauttaa listan
@@ -54,7 +59,7 @@ class VismaSpider(scrapy.Spider):
         
 
         #if 'Java' in text:                      #Jos tekstistä löytyy 'Java' niin printaa sen työn tiedot
-        new = Post(header=header, ala=ala, company=company, text=text, url=url)  
+        new = Post(header=header, ala=ala, location=location, company=company, text=text, url=url)  
         jobPosts.append(new)
 
         #else:
