@@ -196,51 +196,58 @@ class SiiliSpider(scrapy.Spider):
 
 ##############################
 
-def execute_crawling():
-    process = CrawlerProcess()#same way can be done for Crawlrunner
-    process.crawl(SiiliSpider)
-    #process.crawl(JobsReaktor)
-    process.start()
+# def execute_crawling():
+#     process = CrawlerProcess()#same way can be done for Crawlrunner
+#     process.crawl(SiiliSpider)
+#     #process.crawl(JobsReaktor)
+#     process.start()
 
 ###########################
-execute_crawling()
+
 print(len(jobPosts))
 
 #luodaan TimeToLive cache  maxsize pitää löytää sopiva koko ja aika on 1 58600päivä sekunteina
 
-# @cached(cache= TTLCache(maxsize= 50000, ttl = 30))
-# def job_info():
-#     #saadaan jobPosts täyteen tavaraa
+@cached(cache= TTLCache(maxsize= 50000, ttl = 30))
+def job_info():
+    #saadaan jobPosts täyteen tavaraa
     
-#     p = Process(target=execute_crawling)
-#     p.start()
-#     p.join()
+    # p = Process(target=execute_crawling)
+    # p.start()
+    # p.join()
     
-#     #print('True')
-#     return jobPosts
+
+    process = CrawlerProcess()#same way can be done for Crawlrunner
+    process.crawl(SiiliSpider)
+    process.crawl(JobsReaktor)
+    process.start()
+    process.join()
+
+
+
+    #print('True')
+    return jobPosts
 
 
 
 
-# start_time = time.time()
-# print(job_info())
-# time.sleep(30)
+start_time = time.time()
+print(len(jobPosts))
+eka_aika = time.time() - start_time
+start_time = time.time()
+print(len(job_info()))
+toka_aika = time.time() - start_time
+time.sleep(31)
+start_time = time.time()
+print(len(job_info()))
+kolmas_aika = time.time() - start_time
+
+
 # print(jobPosts)
-# eka_aika = time.time() - start_time
-# start_time = time.time()
-# print(job_info())
-# toka_aika = time.time() - start_time
-# time.sleep(31)
-# start_time = time.time()
-# print(job_info())
-# kolmas_aika = time.time() - start_time
-
-
-# print(jobPosts)
 
 
 
 
-# print(eka_aika)
-# print(toka_aika)
-# print(kolmas_aika)
+print(eka_aika)
+print(toka_aika)
+print(kolmas_aika)
