@@ -11,31 +11,22 @@ from multiprocessing import Process
 jobPosts = []
 
 
-
-# class Post:
-#     def __init__(self,header,ala,company,url,text):
-#         self.header = header
-#         self.ala = ala
-#         self.company = company
-#         self.url = url
-#         self.text = text
-
-
-class Post(scrapy.Item):
+class Post(scrapy.Item):                       
     header = scrapy.Field()
     ala = scrapy.Field()
+    location = scrapy.Field()
     company = scrapy.Field()
-    url = scrapy.Field()
     text = scrapy.Field()
+    url = scrapy.Field()
 
 
 class JobsSpider(scrapy.Spider):
     name = "jobs"
-    
+
 
     def start_requests(self):
         urls = [
-            "https://futurice.com/careers/open-positions?category=tech"
+            "https://futurice.com/careers/open-positions"
         ]
         for url in urls:
             tag = getattr(self, 'tag', None)
@@ -46,32 +37,32 @@ class JobsSpider(scrapy.Spider):
     def parse(self, response):
 
         for job in response.css('.css-ffhm6p'):
-            if(job.css('.css-zsp0rz::text').get() == "Tech"):
+            if(job.css('.css-zsp0rz::text').get() == "Tech" or job.css('.css-zsp0rz::text').get() == "Cloud"): 
+                if(job.css('.css-r04r1k::text').get() == "Helsinki" or job.css('.css-r04r1k::text').get() == "Tampere"):
+                    header = job.css('.focusOnHover::text').get()
+                    ala = job.css('.css-zsp0rz::text').get()
+                    location = job.css('.css-r04r1k::text').get()
+                    company = "Futurice"
+                    url = "https://futurice.com/"+job.css('a::attr(href)').get()
 
-                header = job.css('.focusOnHover::text').get()
-                ala = job.css('.css-zsp0rz::text').get()
-                company = "Futurice"
-                url = "https://futurice.com/"+job.css('a::attr(href)').get()
-
-                request = scrapy.Request(
-                    url, callback=self.parse_following_page_Futurice)
-                request.cb_kwargs['header'] = header
-                request.cb_kwargs['ala'] = ala
-                request.cb_kwargs['company'] = company
-                request.cb_kwargs['url'] = url
-                yield request
-
-    def parse_following_page_Futurice(self, response, header, ala, company, url):
-
+                    request = scrapy.Request(url, callback=self.parse_following_page_Futurice)
+                    request.cb_kwargs['header'] = header   ##lähetetään parse_following_page  jo haetut tiedot
+                    request.cb_kwargs['ala'] = ala
+                    request.cb_kwargs['location'] = location
+                    request.cb_kwargs['company'] = company
+                    request.cb_kwargs['url'] = url
+                    yield request      ## vaatii jotta saadaan kutsuttua parse_following_page
+    
+    def parse_following_page_Futurice(self, response, header, ala, location, company, url):
+        
         header = header
         ala = ala
+        location = location
         company = company
         url = url
-        textAll = response.css('div.css-b4zh0n  p::text').getall()
-        text_trimmed = ' '.join([str(text)for text in textAll])
+        text = response.css('div.css-b4zh0n  p').getall()   ##palauttaa listan
 
-        new = Post(header=header, ala=ala, company=company,
-                   text=text_trimmed, url=url)
+        new = Post(header=header, ala=ala, location=location, company=company, text=text, url=url)  
         jobPosts.append(new)
 
 
@@ -90,8 +81,10 @@ class JobsReaktor(scrapy.Spider):
 
         for job in response.css('a.filter-career-post'):
             if job.css('div h2::text').get() != None:
+                sijaintilistaus = job.css('div.f-paragraph-small.gray.flex.flex-wrap.items-center span::text').getall()
                 header = job.css('div h2::text').get()
-                ala = 'Tech'
+                ala = sijaintilistaus[0]
+                location = sijaintilistaus[1]
                 company = 'Reaktor'
                 url = job.css('::attr(href)').get()
 
@@ -99,17 +92,18 @@ class JobsReaktor(scrapy.Spider):
                     url, callback=self.parse_following_page_Reaktor)
                 request.cb_kwargs['header'] = header
                 request.cb_kwargs['ala'] = ala
+                request.cb_kwargs['location'] = location
                 request.cb_kwargs['company'] = company
                 request.cb_kwargs['url'] = url
                 yield request
 
-    def parse_following_page_Reaktor(self, response, header, ala, company, url):
+    def parse_following_page_Reaktor(self, response, header, ala,location , company, url):
 
         header = header
         ala = ala
+        location = location
         company = company
         url = url
-        # palauttaa listan
         text = response.css(
             'div.col.col6-ns.col12.offset1-l.blog-copy  span::text').getall()
         textAll = text + \
@@ -117,7 +111,7 @@ class JobsReaktor(scrapy.Spider):
                 'div.col.col6-ns.col12.offset1-l.blog-copy  p::text').getall()
         text_trimmed = ' '.join([str(text)for text in textAll])
 
-        new = Post(header=header, ala=ala, company=company,
+        new = Post(header=header, ala=ala,location = location ,company=company,
                    text=text_trimmed, url=url)
         jobPosts.append(new)
 
@@ -125,37 +119,37 @@ class JobsReaktor(scrapy.Spider):
 class VismaSpider(scrapy.Spider):
     name = "visma_jobs"
     start_urls = ['https://ats.talentadore.com/positions/rJ4tqSR/rss?v=2&language=en%2Cfi&tags=&notTags=Visma+Legal+avoin+hakemus&businessUnits=&notBusinessUnits=&display_description=job_description&categories=tags_and_extras']
-
+    
     def parse(self, response):
-
         for job in response.xpath('//channel/item'):
+            
+              header = job.xpath('title//text()').extract_first()
+              ala = job.xpath('category[@domain="job_area"]//text()').extract_first()
+              location = job.xpath('category[@domain="city"]//text()').extract()
+              company = 'Visma'
+              url =  job.xpath('link//text()').extract_first()
+               
+              request = scrapy.Request(url, callback=self.parse_following_page)
+              request.cb_kwargs['header'] = header
+              request.cb_kwargs['location'] = location
+              request.cb_kwargs['ala'] = ala
+              request.cb_kwargs['company'] = company
+              request.cb_kwargs['url'] = url
+              yield request
 
-            header = job.xpath('title//text()').extract_first()
-            ala = 'Tech'
-            company = 'Visma'
-            url = job.xpath('link//text()').extract_first()
-
-            request = scrapy.Request(url, callback=self.parse_following_page)
-            # lähetetään parse_following_page  jo haetut tiedot
-            request.cb_kwargs['header'] = header
-            request.cb_kwargs['ala'] = ala
-            request.cb_kwargs['company'] = company
-            request.cb_kwargs['url'] = url
-            yield request             # vaatii jotta saadaan kutsuttua parse_following_page
-
-    def parse_following_page(self, response, header, ala, company, url):
-
+    def parse_following_page(self, response, header, ala, location, company, url):
+        
         header = header
         ala = ala
+        location = location
         company = company
         url = url
-        textlist = response.css(
-            'div.job-ad-feature-description  p').getall()  # palauttaa listan
-        text_untrimmed = ' '.join([str(text)for text in textlist])
-        text_untrimmed = text_untrimmed.replace('<p>', '')
-        text = text_untrimmed.replace('</p>', '')
-
-        new = Post(header=header, ala=ala, company=company, text=text, url=url)
+        textlist = response.css('div.job-ad-feature-description  p').getall()   #palauttaa listan
+        text_untrimmed=' '.join([str(text)for text in textlist])
+        text_untrimmed=text_untrimmed.replace('<p>','')
+        text = text_untrimmed.replace('</p>','') 
+ 
+        new = Post(header=header, ala=ala, location=location, company=company, text=text, url=url)  
         jobPosts.append(new)
 
 
@@ -168,6 +162,8 @@ class SiiliSpider(scrapy.Spider):
 
             header = job.css('h4 a::text').extract_first()
             ala = 'Tech'
+            locationLong = job.css('span.paragraph-3.siili__color--grey.c-careers-city::text').extract_first()
+            location = locationLong.split("/")[0]
             company = 'Siili Solutions'
             url = "https://siili.com" + \
                 job.css('a.c-careers__link::attr(href)').extract_first()
@@ -175,34 +171,36 @@ class SiiliSpider(scrapy.Spider):
             request = scrapy.Request(url, callback=self.parse_following_page)
             request.cb_kwargs['header'] = header
             request.cb_kwargs['ala'] = ala
+            request.cb_kwargs['location'] = location
             request.cb_kwargs['company'] = company
             request.cb_kwargs['url'] = url
             yield request
 
-    def parse_following_page(self, response, header, ala, company, url):
+    def parse_following_page(self, response, header, ala, location, company, url):
         header = header
         ala = ala
+        location = location
         company = company
         url = url
         textAll = response.css('div.span6.c-careers__content p::text').getall()
         text_trimmed = ' '.join([str(text)for text in textAll])
 
-        new = Post(header=header, ala=ala, company=company,
+        new = Post(header=header, ala=ala, location=location, company=company,
                    text=text_trimmed, url=url)           
         jobPosts.append(new)
 
 
 def execute_crawling():
     process = CrawlerProcess()
-    #process.crawl(SiiliSpider)
-    #process.crawl(VismaSpider)
-    #process.crawl(JobsReaktor)
+    process.crawl(SiiliSpider)
+    process.crawl(VismaSpider)
+    process.crawl(JobsReaktor)
     process.crawl(JobsSpider)
     process.start()
 
 execute_crawling()
 
-##############################
+"""##############################
 
 # def execute_crawling():
 #     process = CrawlerProcess()#same way can be done for Crawlrunner
@@ -258,4 +256,4 @@ kolmas_aika = time.time() - start_time
 
 print(eka_aika)
 print(toka_aika)
-print(kolmas_aika)
+print(kolmas_aika)"""
