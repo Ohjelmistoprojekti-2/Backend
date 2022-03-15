@@ -12,7 +12,7 @@ class JobEncoder(JSONEncoder):
 
 app = Flask(__name__) #3000
 CORS(app)
-@app.route('/')
+@app.route('/api/tyopaikat')
 def index():
     jsonData = json.dumps(jobPosts, indent= 4, cls=JobEncoder)
     return Response(jsonData, mimetype='application/json')

@@ -31,6 +31,7 @@ class Post(scrapy.Item):
 
 class JobsSpider(scrapy.Spider):
     name = "jobs"
+    
 
     def start_requests(self):
         urls = [
@@ -189,58 +190,15 @@ class SiiliSpider(scrapy.Spider):
         new = Post(header=header, ala=ala, company=company,
                    text=text_trimmed, url=url)           
         jobPosts.append(new)
-        
 
-
-
-
-##############################
 
 def execute_crawling():
-    process = CrawlerProcess()#same way can be done for Crawlrunner
-    process.crawl(SiiliSpider)
+    process = CrawlerProcess()
+    #process.crawl(SiiliSpider)
+    #process.crawl(VismaSpider)
     #process.crawl(JobsReaktor)
+    process.crawl(JobsSpider)
     process.start()
 
-###########################
 execute_crawling()
-print(len(jobPosts))
 
-#luodaan TimeToLive cache  maxsize pitää löytää sopiva koko ja aika on 1 58600päivä sekunteina
-
-# @cached(cache= TTLCache(maxsize= 50000, ttl = 30))
-# def job_info():
-#     #saadaan jobPosts täyteen tavaraa
-    
-#     p = Process(target=execute_crawling)
-#     p.start()
-#     p.join()
-    
-#     #print('True')
-#     return jobPosts
-
-
-
-
-# start_time = time.time()
-# print(job_info())
-# time.sleep(30)
-# print(jobPosts)
-# eka_aika = time.time() - start_time
-# start_time = time.time()
-# print(job_info())
-# toka_aika = time.time() - start_time
-# time.sleep(31)
-# start_time = time.time()
-# print(job_info())
-# kolmas_aika = time.time() - start_time
-
-
-# print(jobPosts)
-
-
-
-
-# print(eka_aika)
-# print(toka_aika)
-# print(kolmas_aika)
