@@ -1,5 +1,3 @@
-
-from urllib import request
 import scrapy
 from scrapy.crawler import CrawlerProcess
 import json
