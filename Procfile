@@ -1,1 +1,1 @@
-web: gunicorn skreipperi.spiders.call_spiders:app
+web: gunicorn skreipperi/spiders/call_spiders:app
