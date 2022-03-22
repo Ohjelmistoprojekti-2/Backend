@@ -16,4 +16,5 @@ CORS(app)
 def index():
     jsonData = json.dumps(jobPosts, indent= 4, cls=JobEncoder)
     return Response(jsonData, mimetype='application/json')
-app.run()
+if __name__ == '__main__':
+    app.run()
