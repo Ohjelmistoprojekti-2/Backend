@@ -163,7 +163,8 @@ class SiiliSpider(scrapy.Spider):
             header = job.css('h4 a::text').extract_first()
             ala = 'Tech'
             locationLong = job.css('span.paragraph-3.siili__color--grey.c-careers-city::text').extract_first()
-            location = locationLong.split("/")[0]
+            location1 = locationLong.split(" /")[0]
+            location = location1.split(", ")
             company = 'Siili Solutions'
             url = "https://siili.com" + \
                 job.css('a.c-careers__link::attr(href)').extract_first()
