@@ -1,15 +1,20 @@
 import scrapy
-from scrapy.crawler import CrawlerProcess , CrawlerRunner
+from scrapy.crawler import CrawlerProcess
 import json
 from json import JSONEncoder
-from cachetools import cached, TTLCache
-import time
-from twisted.internet import reactor, defer
-from multiprocessing import Process
-
+import firebase_admin
+from firebase_admin import db
+from firebase_admin import credentials
 
 jobPosts = []
 
+cred = credentials.Certificate('firebaseSDK.json')
+
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://ohjelmistoprojekti2-default-rtdb.europe-west1.firebasedatabase.app/'
+})
+
+ref = db.reference("/")
 
 class Post(scrapy.Item):                       
     header = scrapy.Field()
@@ -199,62 +204,13 @@ def execute_crawling():
     process.crawl(JobsSpider)
     process.start()
 
+class JobEncoder(JSONEncoder):
+        def default(self, o):
+            return o.__dict__
+
+def storeToFirebase():
+    jsonData = json.dumps(jobPosts, indent= 4, cls=JobEncoder)
+    ref.set(jsonData)
+
 execute_crawling()
-
-"""##############################
-
-# def execute_crawling():
-#     process = CrawlerProcess()#same way can be done for Crawlrunner
-#     process.crawl(SiiliSpider)
-#     #process.crawl(JobsReaktor)
-#     process.start()
-
-###########################
-
-print(len(jobPosts))
-
-#luodaan TimeToLive cache  maxsize pitää löytää sopiva koko ja aika on 1 58600päivä sekunteina
-
-@cached(cache= TTLCache(maxsize= 50000, ttl = 30))
-def job_info():
-    #saadaan jobPosts täyteen tavaraa
-    
-    # p = Process(target=execute_crawling)
-    # p.start()
-    # p.join()
-    
-
-    process = CrawlerProcess()#same way can be done for Crawlrunner
-    process.crawl(SiiliSpider)
-    process.crawl(JobsReaktor)
-    process.start()
-    process.join()
-
-
-
-    #print('True')
-    return jobPosts
-
-
-
-
-start_time = time.time()
-print(len(jobPosts))
-eka_aika = time.time() - start_time
-start_time = time.time()
-print(len(job_info()))
-toka_aika = time.time() - start_time
-time.sleep(31)
-start_time = time.time()
-print(len(job_info()))
-kolmas_aika = time.time() - start_time
-
-
-# print(jobPosts)
-
-
-
-
-print(eka_aika)
-print(toka_aika)
-print(kolmas_aika)"""
+storeToFirebase()

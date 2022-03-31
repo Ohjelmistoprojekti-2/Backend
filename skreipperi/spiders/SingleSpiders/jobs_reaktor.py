@@ -5,7 +5,6 @@ from json import JSONEncoder
 
 
 
-
 jobPosts = []
 class Post(scrapy.Item):                       
     header = scrapy.Field()
@@ -78,7 +77,8 @@ class JobEncoder(JSONEncoder):
 
 def printList():  
     jsonData = json.dumps(jobPosts, indent= 4, cls=JobEncoder)
-    print(jsonData)
+    #ref.set(jsonData)
+    print(ref.get())
     return jsonData
 
 printList()
