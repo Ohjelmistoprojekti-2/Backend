@@ -1,13 +1,33 @@
 from flask import Flask, request, Response
 from json import JSONEncoder
-import json
+import os
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import db
 from firebase_admin import credentials
+from dotenv import load_dotenv
 
+load_dotenv()
 
-cred = credentials.Certificate('firebaseSDK.json')
+private_key_id = os.getenv('private_key_id')
+private_key = os.getenv('private_key')
+client_email = os.getenv('client_email')
+client_id = os.getenv('client_id')
+
+testidict = {
+    "type": "service_account",
+    "project_id": "ohjelmistoprojekti2",
+    "private_key_id": private_key_id,
+    "private_key": private_key,
+    "client_email": client_email,
+    "client_id": client_id,
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-9h6ca%40ohjelmistoprojekti2.iam.gserviceaccount.com"
+}
+
+cred = credentials.Certificate(testidict)
 
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://ohjelmistoprojekti2-default-rtdb.europe-west1.firebasedatabase.app/'
