@@ -27,7 +27,8 @@ class SiiliSpider(scrapy.Spider):
             ala = 'Tech'
             company = 'Siili Solutions'
             locationLong = job.css('span.paragraph-3.siili__color--grey.c-careers-city::text').extract_first()
-            location = locationLong.split("/")[0]
+            location1 = locationLong.split(" /")[0]
+            location = location1.split(", ")
             url = "https://siili.com"+job.css('a.c-careers__link::attr(href)').extract_first()
 
             request = scrapy.Request(url, callback=self.parse_following_page)
