@@ -31,11 +31,11 @@ class JobsSpider(scrapy.Spider):
     def parse(self, response):
 
         for job in response.css('.css-ffhm6p'):
-            if(job.css('.css-zsp0rz::text').get() == "Tech" or job.css('.css-zsp0rz::text').get() == "Cloud"): 
-                if(job.css('.css-r04r1k::text').get() == "Helsinki" or job.css('.css-r04r1k::text').get() == "Tampere"):
+            if(job.css('.css-1rwq02b.e1vztrv40::text').get() == "Tech" or job.css('.css-1rwq02b.e1vztrv40::text').get() == "Cloud"): 
+                if(job.css('.css-tv0ozi.e1vztrv40::text').get() == "Helsinki" or job.css('.css-tv0ozi.e1vztrv40::text').get() == "Tampere"):
                     header = job.css('.focusOnHover::text').get()
-                    ala = job.css('.css-zsp0rz::text').get()
-                    location = job.css('.css-r04r1k::text').get()
+                    ala = job.css('.css-1rwq02b.e1vztrv40::text').get()
+                    location = job.css('.css-tv0ozi.e1vztrv40::text').get()
                     company = "Futurice"
                     url = "https://futurice.com/"+job.css('a::attr(href)').get()
 
@@ -54,7 +54,7 @@ class JobsSpider(scrapy.Spider):
         location = location
         company = company
         url = url
-        text = response.css('div.css-b4zh0n  p').getall()   ##palauttaa listan
+        text = response.css('div.css-b4zh0n.e1rcc2lx2  p::text').getall()   ##palauttaa listan
 
         new = Post(header=header, ala=ala, location=location, company=company, text=text, url=url)  
         jobPosts.append(new)  
