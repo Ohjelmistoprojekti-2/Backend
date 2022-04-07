@@ -34,7 +34,8 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://ohjelmistoprojekti2-default-rtdb.europe-west1.firebasedatabase.app/'
 })
 
-ref = db.reference("/")
+ref = db.reference("/tyopaikat")
+time_ref = db.reference("/time")
 
 
 class JobEncoder(JSONEncoder):
@@ -53,11 +54,18 @@ def index():
    # else:
       #  return {"message": "Please provide an API key"}, 400
     #if request.method == "GET" and api_key == "API KEY ON JUHOLLA .ENV TIEDOSTOSSA":
-        data = ref.get()
-        return Response(data, mimetype='application/json')
+        
+    data = ref.get()
+    return Response(data, mimetype='application/json')
     #else:
         #return {"message": "The provided API key is not valid"}, 403
 
-    
+
+#Crawlin kellonaika
+@app.route('/api/time')
+def time():
+    time = time_ref.get()
+    return Response(time, mimetype='text/plain')
+
 if __name__ == '__main__':
     app.run()

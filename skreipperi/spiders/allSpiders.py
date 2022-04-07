@@ -1,3 +1,4 @@
+from xml.etree.ElementTree import tostring
 import scrapy
 import os
 from scrapy.crawler import CrawlerProcess
@@ -7,7 +8,7 @@ import firebase_admin
 from firebase_admin import db
 from firebase_admin import credentials
 from dotenv import load_dotenv
-
+import datetime
 
 load_dotenv()
 
@@ -37,7 +38,8 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://ohjelmistoprojekti2-default-rtdb.europe-west1.firebasedatabase.app/'
 })
 
-ref = db.reference("/")
+ref = db.reference("/tyopaikat")
+time_ref = db.reference("/time")
 
 
 class Post(scrapy.Item):
@@ -232,7 +234,12 @@ def execute_crawling():
     process.crawl(JobsReaktor)
     process.crawl(JobsSpider)
     process.start()
+    
 
+def crawl_timer():
+    crawl_time = datetime.datetime.now()
+    crawl_time = crawl_time.strftime("%m/%d/%Y, %H:%M:%S")
+    return crawl_time
 
 class JobEncoder(JSONEncoder):
     def default(self, o):
@@ -242,6 +249,9 @@ class JobEncoder(JSONEncoder):
 def storeToFirebase():
     jsonData = json.dumps(jobPosts, indent=4, cls=JobEncoder)
     ref.set(jsonData)
+
+    time = crawl_timer()
+    time_ref.set(time)
 
 
 execute_crawling()
