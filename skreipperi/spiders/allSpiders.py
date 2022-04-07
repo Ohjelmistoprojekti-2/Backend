@@ -20,7 +20,7 @@ testidict = {
     "type": "service_account",
     "project_id": "ohjelmistoprojekti2",
     "private_key_id": private_key_id,
-    "private_key": private_key,
+    "private_key": json.loads(private_key),
     "client_email": client_email,
     "client_id": client_id,
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
