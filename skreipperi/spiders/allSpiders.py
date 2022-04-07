@@ -52,6 +52,7 @@ class Post(scrapy.Item):
 class JobsSpider(scrapy.Spider):
     name = "jobs"
 
+
     def start_requests(self):
         urls = [
             "https://futurice.com/careers/open-positions"
@@ -65,36 +66,32 @@ class JobsSpider(scrapy.Spider):
     def parse(self, response):
 
         for job in response.css('.css-ffhm6p'):
-            if(job.css('.css-zsp0rz::text').get() == "Tech" or job.css('.css-zsp0rz::text').get() == "Cloud"):
-                if(job.css('.css-r04r1k::text').get() == "Helsinki" or job.css('.css-r04r1k::text').get() == "Tampere"):
+            if(job.css('.css-1rwq02b.e1vztrv40::text').get() == "Tech" or job.css('.css-1rwq02b.e1vztrv40::text').get() == "Cloud"): 
+                if(job.css('.css-tv0ozi.e1vztrv40::text').get() == "Helsinki" or job.css('.css-tv0ozi.e1vztrv40::text').get() == "Tampere"):
                     header = job.css('.focusOnHover::text').get()
-                    ala = job.css('.css-zsp0rz::text').get()
-                    location = job.css('.css-r04r1k::text').get()
+                    ala = job.css('.css-1rwq02b.e1vztrv40::text').get()
+                    location = job.css('.css-tv0ozi.e1vztrv40::text').get()
                     company = "Futurice"
-                    url = "https://futurice.com/" + \
-                        job.css('a::attr(href)').get()
+                    url = "https://futurice.com/"+job.css('a::attr(href)').get()
 
-                    request = scrapy.Request(
-                        url, callback=self.parse_following_page_Futurice)
-                    # lähetetään parse_following_page  jo haetut tiedot
-                    request.cb_kwargs['header'] = header
+                    request = scrapy.Request(url, callback=self.parse_following_page_Futurice)
+                    request.cb_kwargs['header'] = header   ##lähetetään parse_following_page  jo haetut tiedot
                     request.cb_kwargs['ala'] = ala
                     request.cb_kwargs['location'] = location
                     request.cb_kwargs['company'] = company
                     request.cb_kwargs['url'] = url
-                    yield request  # vaatii jotta saadaan kutsuttua parse_following_page
-
+                    yield request      ## vaatii jotta saadaan kutsuttua parse_following_page
+    
     def parse_following_page_Futurice(self, response, header, ala, location, company, url):
-
+        
         header = header
         ala = ala
         location = location
         company = company
         url = url
-        text = response.css('div.css-b4zh0n  p').getall()  # palauttaa listan
+        text = response.css('div.css-b4zh0n.e1rcc2lx2  p::text').getall()   ##palauttaa listan
 
-        new = Post(header=header, ala=ala, location=location,
-                   company=company, text=text, url=url)
+        new = Post(header=header, ala=ala, location=location, company=company, text=text, url=url)  
         jobPosts.append(new)
 
 
