@@ -8,7 +8,8 @@ import firebase_admin
 from firebase_admin import db
 from firebase_admin import credentials
 from dotenv import load_dotenv
-import datetime
+from datetime import datetime
+import pytz
 
 load_dotenv()
 
@@ -21,7 +22,7 @@ testidict = {
     "type": "service_account",
     "project_id": "ohjelmistoprojekti2",
     "private_key_id": private_key_id,
-    "private_key": json.loads(private_key),
+    "private_key": (private_key), ##json.loads
     "client_email": client_email,
     "client_id": client_id,
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -40,6 +41,9 @@ firebase_admin.initialize_app(cred, {
 
 ref = db.reference("/tyopaikat")
 time_ref = db.reference("/time")
+
+#luodaan timezone helsingille
+HKI = pytz.timezone('Europe/Helsinki')
 
 
 class Post(scrapy.Item):
@@ -237,9 +241,13 @@ def execute_crawling():
     
 
 def crawl_timer():
-    crawl_time = datetime.datetime.now()
+    #crawlin kellotus
+    crawl_time = datetime.now()
+    ts= datetime.timestamp(crawl_time)
+    timestamp = datetime.fromtimestamp(ts, tz=HKI)
+    timestamp = timestamp.strftime("%m/%d/%Y, %H:%M:%S")
     crawl_time = crawl_time.strftime("%m/%d/%Y, %H:%M:%S")
-    return crawl_time
+    return ('Local time: '+crawl_time+' Helsinki time: '+ timestamp)
 
 class JobEncoder(JSONEncoder):
     def default(self, o):
