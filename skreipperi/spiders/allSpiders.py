@@ -22,7 +22,7 @@ testidict = {
     "type": "service_account",
     "project_id": "ohjelmistoprojekti2",
     "private_key_id": private_key_id,
-    "private_key": json.loads(private_key), 
+    "private_key": (private_key), #json.loads
     "client_email": client_email,
     "client_id": client_id,
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -96,8 +96,9 @@ class JobsSpider(scrapy.Spider):
         company = company
         url = url
         text = response.css('div.css-b4zh0n.e1rcc2lx2  p::text').getall()   ##palauttaa listan
+        text_trimmed = ' '.join([str(text)for text in text])
 
-        new = Post(header=header, ala=ala, location=location, company=company, text=text, url=url)  
+        new = Post(header=header, ala=ala, location=location, company=company, text=text_trimmed, url=url)  
         jobPosts.append(new)
 
 
